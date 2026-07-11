@@ -28,7 +28,7 @@
       <Rectangle translation="[220,80]" width="880" height="2" color="0x334B7AFF" />
       <Label id="detailsSummary" width="880" height="90" translation="[220,90]" wrap="true" maxLines="3" font="font:MediumSystemFont" color="0xD7E3F9FF" />
       <Label id="detailsPlayHint" text="Press Play/Pause to launch game stream" width="800" height="26" translation="[220,200]" font="font:SmallSystemFont" color="0xFDE68AFF" />
-      <Button id="playButton" text="▶ PLAY" translation="[220,230]" minWidth="200" height="48" focusedColor="0x7DD3FC" focusFootprintColor="0x7DD3FC33" onButtonSelected="startGameStream" />
+      <Button id="playButton" text="▶ PLAY" translation="[220,230]" minWidth="200" height="48" focusedColor="0x7DD3FC" focusFootprintColor="0x7DD3FC33" />
       <Label text="Back: return to games" width="1100" height="26" translation="[0,360]" font="font:SmallSystemFont" color="0xAAB9D6FF" />
     </LayoutGroup>
 

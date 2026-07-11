@@ -1,8 +1,19 @@
 param(
-    [string]$Output = "dist/RommForRoku-0.4.0.zip"
+    [string]$Output
 )
 
 $projectRoot = Split-Path -Parent $PSScriptRoot
+
+if (-not $Output) {
+    $manifest = @{}
+    foreach ($line in Get-Content (Join-Path $projectRoot "manifest")) {
+        $key, $value = $line -split '=', 2
+        $manifest[$key] = $value
+    }
+    $version = "$($manifest['major_version']).$($manifest['minor_version']).$($manifest['build_version'])"
+    $Output = "dist/RommForRoku-$version.zip"
+}
+
 $archivePath = Join-Path $projectRoot $Output
 $archiveDir = Split-Path -Parent $archivePath
 
