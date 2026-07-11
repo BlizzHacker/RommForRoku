@@ -18,17 +18,21 @@
     </LayoutGroup>
 
     <Label id="screenHeading" visible="false" translation="[64,136]" width="1150" height="44" font="font:MediumBoldSystemFont" color="0xF8FAFCFF" />
-    <LabelList id="platformList" visible="false" translation="[64,194]" width="1150" height="448" itemSize="[1100,52]" itemSpacing="[0,8]" drawFocusFeedback="true" focusedColor="0x7DD3FCFF" color="0xD7E3F9FF" vertFocusAnimationStyle="floatingFocus" />
-    <LabelList id="romList" visible="false" translation="[64,194]" width="1150" height="448" itemSize="[1100,52]" itemSpacing="[0,8]" drawFocusFeedback="true" focusedColor="0x7DD3FCFF" color="0xD7E3F9FF" vertFocusAnimationStyle="floatingFocus" />
+    <LabelList id="platformList" visible="false" translation="[64,194]" width="1150" height="448" itemSize="[1100,52]" itemSpacing="[0,8]" drawFocusFeedback="true" focusedColor="0x7DD3FCFF" color="0xD7E3F9FF" />
+    <LabelList id="romList" visible="false" translation="[64,194]" width="1150" height="448" itemSize="[1100,52]" itemSpacing="[0,8]" drawFocusFeedback="true" focusedColor="0x7DD3FCFF" color="0xD7E3F9FF" />
 
-    <LayoutGroup id="detailsPanel" visible="false" layoutDirection="vert" translation="[84,154]" itemSpacings="[16]">
-      <Label id="detailsTitle" width="1110" height="48" font="font:MediumBoldSystemFont" color="0xF8FAFCFF" />
-      <Label id="detailsPlatform" width="1110" height="26" font="font:SmallSystemFont" color="0x7DD3FCFF" />
-      <Rectangle width="1110" height="2" color="0x334B7AFF" />
-      <Label id="detailsSummary" width="1110" height="132" wrap="true" maxLines="5" font="font:MediumSystemFont" color="0xD7E3F9FF" />
-      <Label id="detailsNotice" width="1110" height="92" wrap="true" maxLines="4" font="font:SmallSystemFont" color="0xFDE68AFF" />
-      <Label text="Back: return to games" width="1110" height="26" font="font:SmallSystemFont" color="0xAAB9D6FF" />
+    <LayoutGroup id="detailsPanel" visible="false" layoutDirection="vert" translation="[84,154]" itemSpacings="[12]">
+      <Poster id="detailsCover" width="200" height="280" translation="[0,0]" />
+      <Label id="detailsTitle" width="880" height="44" translation="[220,0]" font="font:MediumBoldSystemFont" color="0xF8FAFCFF" />
+      <Label id="detailsPlatform" width="880" height="24" translation="[220,48]" font="font:SmallSystemFont" color="0x7DD3FCFF" />
+      <Rectangle translation="[220,80]" width="880" height="2" color="0x334B7AFF" />
+      <Label id="detailsSummary" width="880" height="90" translation="[220,90]" wrap="true" maxLines="3" font="font:MediumSystemFont" color="0xD7E3F9FF" />
+      <Label id="detailsPlayHint" text="Press Play/Pause to launch game stream" width="1100" height="26" translation="[0,300]" font="font:SmallSystemFont" color="0xFDE68AFF" />
+      <Label text="Back: return to games" width="1100" height="26" translation="[0,332]" font="font:SmallSystemFont" color="0xAAB9D6FF" />
     </LayoutGroup>
+
+    <Video id="gameVideo" visible="false" translation="[0,0]" width="1280" height="720" />
+    <Label id="streamStatus" visible="false" translation="[900,680]" width="360" height="28" font="font:SmallSystemFont" color="0x7DD3FCFF" />
 
     <Rectangle id="statusBar" translation="[0,662]" width="1280" height="58" color="0x121B33FF" />
     <Label id="status" translation="[64,678]" width="1140" height="28" font="font:SmallSystemFont" color="0xAAB9D6FF" />

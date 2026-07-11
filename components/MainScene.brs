@@ -6,16 +6,20 @@ sub init()
     m.platformList = m.top.FindNode("platformList")
     m.romList = m.top.FindNode("romList")
     m.detailsPanel = m.top.FindNode("detailsPanel")
+    m.detailsCover = m.top.FindNode("detailsCover")
     m.detailsTitle = m.top.FindNode("detailsTitle")
     m.detailsPlatform = m.top.FindNode("detailsPlatform")
     m.detailsSummary = m.top.FindNode("detailsSummary")
-    m.detailsNotice = m.top.FindNode("detailsNotice")
+    m.detailsPlayHint = m.top.FindNode("detailsPlayHint")
+    m.gameVideo = m.top.FindNode("gameVideo")
+    m.streamStatus = m.top.FindNode("streamStatus")
     m.status = m.top.FindNode("status")
 
     m.platformList.ObserveField("itemSelected", "onPlatformSelected")
     m.romList.ObserveField("itemSelected", "onRomSelected")
 
     m.defaultServer = "https://romm.moveweight.com"
+    m.streamServer = "http://192.168.0.94:8090"
     m.server = m.defaultServer
     m.codeDigits = ["0", "0", "0", "0", "0", "0", "0", "0"]
     m.cursor = 0
@@ -49,6 +53,8 @@ sub showPairing(message = "")
     m.platformList.visible = false
     m.romList.visible = false
     m.detailsPanel.visible = false
+    m.gameVideo.visible = false
+    m.streamStatus.visible = false
     m.top.SetFocus(true)
     updatePairCode()
     if message = "" then
@@ -86,6 +92,8 @@ sub loadPlatforms()
     m.platformList.visible = false
     m.romList.visible = false
     m.detailsPanel.visible = false
+    m.gameVideo.visible = false
+    m.streamStatus.visible = false
     m.status.text = "Loading your RomM library..."
     beginRequest("platforms", "GET", "/api/platforms", "")
 end sub
@@ -107,16 +115,50 @@ sub onRomSelected()
     index = m.romList.itemSelected
     if index < 0 or index >= m.roms.Count() then return
     game = m.roms[index]
+    m.selectedGame = game
     m.view = "details"
     m.romList.visible = false
     m.detailsPanel.visible = true
+    if game.id <> invalid then
+        m.detailsCover.uri = m.server + "/api/roms/" + game.id.ToStr() + "/cover"
+    else
+        m.detailsCover.uri = ""
+    end if
     m.detailsTitle.text = safeText(game.name, safeText(game.fs_name_no_ext, "Untitled game"))
     m.detailsPlatform.text = "Platform: " + safeText(game.platform_display_name, platformDisplayName(m.selectedPlatform))
-    summary = safeText(game.summary, "No description is available for this game in RomM.")
-    m.detailsSummary.text = summary
-    m.detailsNotice.text = "Library connection is live. EmulatorJS is browser-based, and Roku channels cannot embed a web browser/WebRTC game client or accept arbitrary Bluetooth or USB gamepad input. This channel is deliberately a secure library companion, not a misleading low-latency streaming promise."
-    m.status.text = "Game details"
+    m.detailsSummary.text = safeText(game.summary, "No description available.")
+    m.detailsPlayHint.text = "Press PLAY to launch game stream — use phone as controller"
+    m.status.text = "Game details — Play to stream"
     m.top.SetFocus(true)
+end sub
+
+sub startGameStream()
+    if m.selectedGame = invalid then return
+    game = m.selectedGame
+    m.view = "streaming"
+    m.detailsPanel.visible = false
+    m.streamStatus.visible = true
+    m.streamStatus.text = "Starting stream..."
+    m.status.text = "Launching " + safeText(game.name, "game")
+
+    body = FormatJson({
+        name: safeText(game.name, "game")
+        platform: safeText(m.selectedPlatform.slug, "n64")
+        rom_name: safeText(game.fs_name, "")
+    })
+    beginStreamRequest("stream-start", "POST", "/api/stream/start", body)
+end sub
+
+sub stopGameStream()
+    if m.streamId = invalid or m.streamId = "" then return
+    m.gameVideo.visible = false
+    m.gameVideo.control = "stop"
+    m.streamStatus.visible = false
+    m.view = "details"
+    m.detailsPanel.visible = true
+    m.status.text = "Stream ended"
+    beginStreamRequest("stream-stop", "POST", "/api/stream/" + m.streamId + "/stop", "")
+    m.streamId = ""
 end sub
 
 sub beginRequest(requestId as string, method as string, path as string, body as string)
@@ -133,6 +175,45 @@ sub beginRequest(requestId as string, method as string, path as string, body as 
     task.control = "RUN"
 end sub
 
+sub beginStreamRequest(requestId as string, method as string, path as string, body as string)
+    task = CreateObject("roSGNode", "RommTask")
+    task.server = m.streamServer
+    task.token = ""
+    task.path = path
+    task.method = method
+    task.body = body
+    task.requestId = requestId
+    task.ObserveField("response", "onStreamResponse")
+    m.streamTask = task
+    m.top.AppendChild(task)
+    task.control = "RUN"
+end sub
+
+sub onStreamResponse()
+    response = m.streamTask.response
+    if response = invalid then return
+    parsed = invalid
+    if response.body <> "" then parsed = ParseJson(response.body)
+
+    if response.requestId = "stream-start" then
+        if parsed <> invalid and parsed.hls_url <> invalid then
+            m.streamId = parsed.stream_id
+            m.streamStatus.text = "ID: " + m.streamId
+            m.gameVideo.content = CreateObject("roSGNode", "ContentNode")
+            m.gameVideo.content.url = parsed.hls_url
+            m.gameVideo.content.streamformat = "hls"
+            m.gameVideo.visible = true
+            m.gameVideo.control = "play"
+            m.streamStatus.text = "Phone: 192.168.0.94:8091/?sid=" + m.streamId
+        else
+            m.streamStatus.text = "Stream failed"
+            m.status.text = "Could not start game stream"
+        end if
+    else if response.requestId = "stream-stop" then
+        m.streamStatus.text = ""
+    end if
+end sub
+
 sub onResponse()
     response = m.activeTask.response
     if response = invalid then return
@@ -141,7 +222,7 @@ sub onResponse()
 
     if response.status < 200 or response.status >= 300 then
         if response.requestId = "pair" then
-            showPairing("Pairing failed. Check the eight-digit code and create a new one if it expired.")
+            showPairing("Pairing failed. Check the code and create a new one if it expired.")
         else
             showRequestError(response.status)
         end if
@@ -188,7 +269,7 @@ sub displayPlatforms(data as object)
         if platform.rom_count <> invalid and platform.rom_count > 0 then
             m.platforms.Push(platform)
             item = content.CreateChild("ContentNode")
-            item.title = platformDisplayName(platform) + "  (" + platform.rom_count.ToStr() + ")"
+            item.title = platformDisplayName(platform) + "  (" + platform.rom_count.ToStr() + " games)"
         end if
     end for
 
@@ -212,8 +293,7 @@ sub displayRoms(data as object)
     m.romList.content = content
     m.romList.visible = true
     m.romList.SetFocus(true)
-    count = m.roms.Count()
-    m.status.text = count.ToStr() + " games — select one for details"
+    m.status.text = m.roms.Count().ToStr() + " games — select one for details"
 end sub
 
 sub showRequestError(status as integer)
@@ -226,11 +306,9 @@ sub showRequestError(status as integer)
 end sub
 
 sub saveConnection()
-    ' Registry writes skipped for Roku OS 15.2.4 compatibility
 end sub
 
 sub clearConnection()
-    ' Registry cleared for Roku OS 15.2.4 compatibility
     m.token = ""
 end sub
 
@@ -269,11 +347,17 @@ function onKeyEvent(key as string, press as boolean) as boolean
         m.romList.SetFocus(true)
         m.status.text = "Select a game for details"
         return true
+    else if m.view = "details" and key = "play" then
+        startGameStream()
+        return true
+    else if m.view = "streaming" and key = "back" then
+        stopGameStream()
+        return true
     else if m.view = "roms" and key = "back" then
         m.romList.visible = false
         m.platformList.visible = true
-        m.view = "platforms"
         m.platformList.SetFocus(true)
+        m.view = "platforms"
         m.status.text = "Select a platform"
         return true
     end if
