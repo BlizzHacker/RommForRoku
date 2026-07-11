@@ -16,7 +16,7 @@ Pairing codes are single-use and expire after five minutes. The resulting scoped
 ./scripts/package.ps1
 ```
 
-The package is written to `dist/RommForRoku-0.4.0.zip`. Upload that archive from the Roku device development web page. Do not zip the enclosing `romm-roku` folder; Roku requires `manifest`, `source`, and `components` at the archive root.
+The package is written to `dist/RommForRoku-<version>.zip`, with the version taken from the manifest. Upload that archive from the Roku device development web page. Do not zip the enclosing project folder; Roku requires `manifest`, `source`, and `components` at the archive root.
 
 ## Scope and platform limit
 

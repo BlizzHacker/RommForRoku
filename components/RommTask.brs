@@ -13,26 +13,32 @@ sub executeRequest()
         transfer.AddHeader("Authorization", "Bearer " + m.top.token)
     end if
 
-    responseBody = ""
+    port = CreateObject("roMessagePort")
+    transfer.SetMessagePort(port)
+
     if m.top.method = "POST" then
         transfer.AddHeader("Content-Type", "application/json")
-        port = CreateObject("roMessagePort")
-        transfer.SetMessagePort(port)
-        if transfer.AsyncPostFromString(m.top.body) then
-            event = wait(10000, port)
-            if type(event) = "roUrlEvent" and event.GetResponseCode() = 200 then
-                responseBody = event.GetString()
-            end if
-        end if
+        started = transfer.AsyncPostFromString(m.top.body)
     else
-        result = transfer.GetToString()
-        if result <> invalid then responseBody = result
+        started = transfer.AsyncGetToString()
     end if
 
-    if responseBody = invalid then responseBody = ""
+    ' status 0 means the request never completed (network failure or timeout)
+    status = 0
+    responseBody = ""
+    if started then
+        event = wait(30000, port)
+        if type(event) = "roUrlEvent" then
+            status = event.GetResponseCode()
+            responseBody = event.GetString()
+        else
+            transfer.AsyncCancel()
+        end if
+    end if
+
     m.top.response = {
         requestId: m.top.requestId
-        status: 200
+        status: status
         body: responseBody
     }
 end sub

@@ -14,12 +14,15 @@ sub init()
     m.gameVideo = m.top.FindNode("gameVideo")
     m.streamStatus = m.top.FindNode("streamStatus")
     m.status = m.top.FindNode("status")
+    m.playButton = m.top.FindNode("playButton")
 
     m.platformList.ObserveField("itemSelected", "onPlatformSelected")
     m.romList.ObserveField("itemSelected", "onRomSelected")
+    m.playButton.ObserveField("buttonSelected", "onPlayButton")
 
     m.defaultServer = "https://romm.moveweight.com"
     m.streamServer = "http://192.168.0.94:8090"
+    m.phoneUrl = "192.168.0.94:8091"
     m.server = m.defaultServer
     m.codeDigits = ["0", "0", "0", "0", "0", "0", "0", "0"]
     m.cursor = 0
@@ -127,13 +130,9 @@ sub onRomSelected()
     m.detailsTitle.text = safeText(game.name, safeText(game.fs_name_no_ext, "Untitled game"))
     m.detailsPlatform.text = "Platform: " + safeText(game.platform_display_name, platformDisplayName(m.selectedPlatform))
     m.detailsSummary.text = safeText(game.summary, "No description available.")
-    m.detailsPlayHint.text = "Phone: 192.168.0.94:8091"
+    m.detailsPlayHint.text = "Phone: " + m.phoneUrl
     m.status.text = "Game details"
-    m.playButton = m.top.FindNode("playButton")
-    if m.playButton <> invalid then
-        m.playButton.SetFocus(true)
-        m.playButton.observeField("buttonSelected", "onPlayButton")
-    end if
+    m.playButton.SetFocus(true)
 end sub
 
 sub onPlayButton()
@@ -158,15 +157,17 @@ sub startGameStream()
 end sub
 
 sub stopGameStream()
-    if m.streamId = invalid or m.streamId = "" then return
-    m.gameVideo.visible = false
     m.gameVideo.control = "stop"
+    m.gameVideo.visible = false
     m.streamStatus.visible = false
     m.view = "details"
     m.detailsPanel.visible = true
+    m.playButton.SetFocus(true)
     m.status.text = "Stream ended"
-    beginStreamRequest("stream-stop", "POST", "/api/stream/" + m.streamId + "/stop", "")
-    m.streamId = ""
+    if m.streamId <> invalid and m.streamId <> "" then
+        beginStreamRequest("stream-stop", "POST", "/api/stream/" + m.streamId + "/stop", "")
+        m.streamId = ""
+    end if
 end sub
 
 sub beginRequest(requestId as string, method as string, path as string, body as string)
@@ -179,7 +180,6 @@ sub beginRequest(requestId as string, method as string, path as string, body as 
     task.requestId = requestId
     task.ObserveField("response", "onResponse")
     m.activeTask = task
-    m.top.AppendChild(task)
     task.control = "RUN"
 end sub
 
@@ -193,26 +193,25 @@ sub beginStreamRequest(requestId as string, method as string, path as string, bo
     task.requestId = requestId
     task.ObserveField("response", "onStreamResponse")
     m.streamTask = task
-    m.top.AppendChild(task)
     task.control = "RUN"
 end sub
 
-sub onStreamResponse()
-    response = m.streamTask.response
+sub onStreamResponse(event as object)
+    response = event.GetData()
     if response = invalid then return
     parsed = invalid
     if response.body <> "" then parsed = ParseJson(response.body)
+    if type(parsed) <> "roAssociativeArray" then parsed = invalid
 
     if response.requestId = "stream-start" then
         if parsed <> invalid and parsed.hls_url <> invalid then
-            m.streamId = parsed.stream_id
-            m.streamStatus.text = "ID: " + m.streamId
+            m.streamId = safeText(parsed.stream_id, "")
             m.gameVideo.content = CreateObject("roSGNode", "ContentNode")
             m.gameVideo.content.url = parsed.hls_url
             m.gameVideo.content.streamformat = "hls"
             m.gameVideo.visible = true
             m.gameVideo.control = "play"
-            m.streamStatus.text = "Phone: 192.168.0.94:8091/?sid=" + m.streamId
+            m.streamStatus.text = "Phone: " + m.phoneUrl + "/?sid=" + m.streamId
         else
             m.streamStatus.text = "Stream failed"
             m.status.text = "Could not start game stream"
@@ -222,8 +221,8 @@ sub onStreamResponse()
     end if
 end sub
 
-sub onResponse()
-    response = m.activeTask.response
+sub onResponse(event as object)
+    response = event.GetData()
     if response = invalid then return
     parsed = invalid
     if response.body <> "" then parsed = ParseJson(response.body)
@@ -238,7 +237,7 @@ sub onResponse()
     end if
 
     if response.requestId = "pair" then
-        if parsed = invalid or parsed.raw_token = invalid or parsed.raw_token = "" then
+        if type(parsed) <> "roAssociativeArray" or parsed.raw_token = invalid or parsed.raw_token = "" then
             showPairing("RomM did not return a usable client token.")
             return
         end if
@@ -252,7 +251,7 @@ sub onResponse()
         end if
         displayPlatforms(parsed)
     else if response.requestId = "roms" then
-        if parsed = invalid or parsed.items = invalid then
+        if type(parsed) <> "roAssociativeArray" or parsed.items = invalid then
             showRequestError(response.status)
             return
         end if
@@ -308,6 +307,8 @@ sub showRequestError(status as integer)
     if status = 401 or status = 403 then
         clearConnection()
         showPairing("Your RomM token is no longer valid. Pair again with a new code.")
+    else if status <= 0 then
+        showPairing("Could not reach RomM. Check your network and try again.")
     else
         showPairing("RomM could not be reached (HTTP " + status.ToStr() + "). Try again shortly.")
     end if
@@ -368,7 +369,7 @@ function onKeyEvent(key as string, press as boolean) as boolean
     else if m.view = "details" and (key = "Play" or key = "play") then
         startGameStream()
         return true
-    else if m.view = "streaming" and key = "Back" then
+    else if m.view = "streaming" and key = "back" then
         stopGameStream()
         return true
     else if m.view = "roms" and key = "back" then
@@ -376,6 +377,7 @@ function onKeyEvent(key as string, press as boolean) as boolean
         m.platformList.visible = true
         m.platformList.SetFocus(true)
         m.view = "platforms"
+        m.screenHeading.text = "Your platforms"
         m.status.text = "Select a platform"
         return true
     end if
