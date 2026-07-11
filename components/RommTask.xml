@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="RommTask" extends="Task">
+  <interface>
+    <field id="server" type="string" />
+    <field id="token" type="string" />
+    <field id="path" type="string" />
+    <field id="method" type="string" value="GET" />
+    <field id="body" type="string" value="" />
+    <field id="requestId" type="string" />
+    <field id="response" type="assocarray" />
+  </interface>
+  <script type="text/brightscript" uri="pkg:/components/RommTask.brs" />
+</component>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="MainScene" extends="Scene">
+  <script type="text/brightscript" uri="pkg:/components/MainScene.brs" />
+  <children>
+    <Rectangle id="background" width="1280" height="720" color="0x0B1020FF" />
+    <Rectangle id="topBar" width="1280" height="108" color="0x121B33FF" />
+    <Label id="title" text="RomM for Roku" translation="[64,28]" width="900" height="46" font="font:LargeBoldSystemFont" color="0xF8FAFCFF" />
+    <Label id="subtitle" text="MoveWeight game library" translation="[66,74]" width="900" height="24" font="font:SmallSystemFont" color="0x9FB3D9FF" />
+
+    <LayoutGroup id="pairPanel" layoutDirection="vert" translation="[94,150]" itemSpacings="[18]">
+      <Label text="Pair this Roku with RomM" width="1090" height="50" font="font:MediumBoldSystemFont" color="0xF8FAFCFF" />
+      <Label id="pairInstructions" text="On romm.moveweight.com, create a read-only Client API Token and choose Pair to generate an 8-digit code." width="1090" height="54" wrap="true" maxLines="2" font="font:MediumSystemFont" color="0xC9D6F0FF" />
+      <Rectangle width="1090" height="2" color="0x334B7AFF" />
+      <Label id="pairCode" text="0 0 0 0   0 0 0 0" width="1090" height="78" horizAlign="center" font="font:LargeBoldSystemFont" color="0x7DD3FCFF" />
+      <Label id="pairCursor" text="^" width="1090" height="32" horizAlign="center" font="font:MediumBoldSystemFont" color="0xFDE68AFF" />
+      <Label text="Left / Right: choose a digit    Up / Down: change it    OK: pair" width="1090" height="30" horizAlign="center" font="font:SmallSystemFont" color="0xAAB9D6FF" />
+      <Label id="pairHint" text="The pairing code is single-use and expires after five minutes." width="1090" height="30" horizAlign="center" font="font:SmallSystemFont" color="0x8093B8FF" />
+    </LayoutGroup>
+
+    <Label id="screenHeading" visible="false" translation="[64,136]" width="1150" height="44" font="font:MediumBoldSystemFont" color="0xF8FAFCFF" />
+    <LabelList id="platformList" visible="false" translation="[64,194]" width="1150" height="448" itemSize="[1100,52]" itemSpacing="[0,8]" drawFocusFeedback="true" focusedColor="0x7DD3FCFF" color="0xD7E3F9FF" vertFocusAnimationStyle="floatingFocus" />
+    <LabelList id="romList" visible="false" translation="[64,194]" width="1150" height="448" itemSize="[1100,52]" itemSpacing="[0,8]" drawFocusFeedback="true" focusedColor="0x7DD3FCFF" color="0xD7E3F9FF" vertFocusAnimationStyle="floatingFocus" />
+
+    <LayoutGroup id="detailsPanel" visible="false" layoutDirection="vert" translation="[84,154]" itemSpacings="[16]">
+      <Label id="detailsTitle" width="1110" height="48" font="font:MediumBoldSystemFont" color="0xF8FAFCFF" />
+      <Label id="detailsPlatform" width="1110" height="26" font="font:SmallSystemFont" color="0x7DD3FCFF" />
+      <Rectangle width="1110" height="2" color="0x334B7AFF" />
+      <Label id="detailsSummary" width="1110" height="132" wrap="true" maxLines="5" font="font:MediumSystemFont" color="0xD7E3F9FF" />
+      <Label id="detailsNotice" width="1110" height="92" wrap="true" maxLines="4" font="font:SmallSystemFont" color="0xFDE68AFF" />
+      <Label text="Back: return to games" width="1110" height="26" font="font:SmallSystemFont" color="0xAAB9D6FF" />
+    </LayoutGroup>
+
+    <Rectangle id="statusBar" translation="[0,662]" width="1280" height="58" color="0x121B33FF" />
+    <Label id="status" translation="[64,678]" width="1140" height="28" font="font:SmallSystemFont" color="0xAAB9D6FF" />
+  </children>
+</component>
