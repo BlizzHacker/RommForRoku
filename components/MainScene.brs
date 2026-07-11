@@ -107,7 +107,7 @@ sub onPlatformSelected()
     m.platformList.visible = false
     m.screenHeading.text = platformDisplayName(platform) + " games"
     m.status.text = "Loading games..."
-    path = "/api/roms?platform_ids=" + platform.id.ToStr() + "&limit=200&with_char_index=false&with_filter_values=false"
+    path = "/api/roms?platform_ids=" + platform.id.ToStr() + "&limit=500&with_char_index=false&with_filter_values=false"
     beginRequest("roms", "GET", path, "")
 end sub
 
@@ -127,9 +127,17 @@ sub onRomSelected()
     m.detailsTitle.text = safeText(game.name, safeText(game.fs_name_no_ext, "Untitled game"))
     m.detailsPlatform.text = "Platform: " + safeText(game.platform_display_name, platformDisplayName(m.selectedPlatform))
     m.detailsSummary.text = safeText(game.summary, "No description available.")
-    m.detailsPlayHint.text = "Press PLAY to launch game stream — use phone as controller"
-    m.status.text = "Game details — Play to stream"
-    m.top.SetFocus(true)
+    m.detailsPlayHint.text = "Phone: 192.168.0.94:8091"
+    m.status.text = "Game details"
+    m.playButton = m.top.FindNode("playButton")
+    if m.playButton <> invalid then
+        m.playButton.SetFocus(true)
+        m.playButton.observeField("buttonSelected", "onPlayButton")
+    end if
+end sub
+
+sub onPlayButton()
+    startGameStream()
 end sub
 
 sub startGameStream()
@@ -306,9 +314,16 @@ sub showRequestError(status as integer)
 end sub
 
 sub saveConnection()
+    section = CreateObject("roRegistrySection", "romm")
+    section.Write("server", m.server)
+    section.Write("token", m.token)
+    section.Flush()
 end sub
 
 sub clearConnection()
+    section = CreateObject("roRegistrySection", "romm")
+    section.Delete("token")
+    section.Flush()
     m.token = ""
 end sub
 
@@ -347,10 +362,13 @@ function onKeyEvent(key as string, press as boolean) as boolean
         m.romList.SetFocus(true)
         m.status.text = "Select a game for details"
         return true
-    else if m.view = "details" and key = "play" then
+    else if m.view = "details" and key = "OK" then
         startGameStream()
         return true
-    else if m.view = "streaming" and key = "back" then
+    else if m.view = "details" and (key = "Play" or key = "play") then
+        startGameStream()
+        return true
+    else if m.view = "streaming" and key = "Back" then
         stopGameStream()
         return true
     else if m.view = "roms" and key = "back" then
