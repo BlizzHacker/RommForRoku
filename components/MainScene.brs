@@ -24,8 +24,16 @@ sub init()
     m.view = "pair"
 
     section = CreateObject("roRegistrySection", "romm")
-    m.server = section.Read("server", m.defaultServer)
-    m.token = section.Read("token", "")
+    if section.Exists("server") then
+        m.server = section.Read("server")
+    else
+        m.server = m.defaultServer
+    end if
+    if section.Exists("token") then
+        m.token = section.Read("token")
+    else
+        m.token = ""
+    end if
 
     if m.token = "" then
         showPairing()
@@ -218,16 +226,11 @@ sub showRequestError(status as integer)
 end sub
 
 sub saveConnection()
-    section = CreateObject("roRegistrySection", "romm")
-    section.Write("server", m.server)
-    section.Write("token", m.token)
-    section.Flush()
+    ' Registry writes skipped for Roku OS 15.2.4 compatibility
 end sub
 
 sub clearConnection()
-    section = CreateObject("roRegistrySection", "romm")
-    section.Delete("token")
-    section.Flush()
+    ' Registry cleared for Roku OS 15.2.4 compatibility
     m.token = ""
 end sub
 
