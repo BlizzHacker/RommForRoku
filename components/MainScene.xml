@@ -32,7 +32,7 @@
       <Label text="Back: return to games" width="1100" height="26" translation="[0,360]" font="font:SmallSystemFont" color="0xAAB9D6FF" />
     </LayoutGroup>
 
-    <Video id="gameVideo" visible="false" translation="[0,0]" width="1280" height="720" />
+    <Video id="gameVideo" visible="false" translation="[0,0]" width="1280" height="720" enableTrickPlay="false" />
     <Label id="streamStatus" visible="false" translation="[900,680]" width="360" height="28" font="font:SmallSystemFont" color="0x7DD3FCFF" />
 
     <Rectangle id="statusBar" translation="[0,662]" width="1280" height="58" color="0x121B33FF" />

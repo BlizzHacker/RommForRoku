@@ -152,7 +152,7 @@ sub startGameStream()
         name: safeText(game.name, "game")
         platform: safeText(m.selectedPlatform.slug, "n64")
         rom_name: safeText(game.fs_name, "")
-        client: "roku"
+        client: "roku-romm"
     })
     beginStreamRequest("stream-start", "POST", "/api/stream/start", body)
 end sub
@@ -212,7 +212,8 @@ sub onStreamResponse(event as object)
             m.gameVideo.content.streamformat = "hls"
             m.gameVideo.visible = true
             m.gameVideo.control = "play"
-            m.streamStatus.text = "Phone: " + m.phoneUrl + "/?sid=" + m.streamId
+            m.gameVideo.SetFocus(true)
+            m.streamStatus.text = "Remote: D-pad move  OK = A  Back = exit"
         else
             m.streamStatus.text = "Stream failed"
             m.status.text = "Could not start game stream"
@@ -330,6 +331,22 @@ sub clearConnection()
 end sub
 
 function onKeyEvent(key as string, press as boolean) as boolean
+    ' While a game is streaming, the Roku remote drives the emulator directly.
+    ' This runs on BOTH press and release so held directions keep moving; all
+    ' other views only act on key-down.
+    if m.view = "streaming" then
+        if key = "back" then
+            if press then stopGameStream()
+            return true
+        end if
+        control = remoteToGameControl(key)
+        if control <> "" then
+            sendGameInput(control, press)
+            return true
+        end if
+        return false
+    end if
+
     if not press then return false
 
     if m.view = "pair" then
@@ -384,6 +401,49 @@ function onKeyEvent(key as string, press as boolean) as boolean
     end if
     return false
 end function
+
+' Map a Roku remote button to an emulator control (server maps these to the
+' EmulatorJS/RetroArch keys per platform). Runs during a streaming session.
+function remoteToGameControl(key as string) as string
+    if key = "up" then return "up"
+    if key = "down" then return "down"
+    if key = "left" then return "left"
+    if key = "right" then return "right"
+    if key = "OK" then return "a"
+    if key = "options" then return "b"
+    if key = "instantreplay" then return "x"
+    if key = "info" then return "y"
+    if key = "rewind" then return "select"
+    if key = "fastforward" then return "start"
+    if key = "play" then return "start"
+    return ""
+end function
+
+sub sendGameInput(control as string, pressed as boolean)
+    if m.streamId = invalid or m.streamId = "" then return
+    if m.inputTasks = invalid then m.inputTasks = []
+    body = FormatJson({ key: control, pressed: pressed })
+    task = CreateObject("roSGNode", "RommTask")
+    task.server = m.streamServer
+    task.token = ""
+    task.path = "/api/stream/" + m.streamId + "/input"
+    task.method = "POST"
+    task.body = body
+    task.requestId = "input"
+    task.ObserveField("response", "onInputDone")
+    m.inputTasks.Push(task)
+    task.control = "RUN"
+end sub
+
+sub onInputDone(evt as object)
+    node = evt.GetRoSGNode()
+    for i = 0 to m.inputTasks.Count() - 1
+        if m.inputTasks[i].isSameNode(node) then
+            m.inputTasks.Delete(i)
+            return
+        end if
+    end for
+end sub
 
 function safeText(value as dynamic, fallback as string) as string
     if value = invalid then return fallback
