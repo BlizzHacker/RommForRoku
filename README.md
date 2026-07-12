@@ -21,3 +21,11 @@ The package is written to `dist/RommForRoku-<version>.zip`, with the version tak
 ## Scope and platform limit
 
 This is a real RomM library client: it pairs, reads the live platform/game catalog, and presents controller-friendly Roku navigation. It cannot directly run EmulatorJS or low-latency game streaming because Roku channels do not embed a browser/WebRTC game client and Roku does not expose arbitrary Bluetooth/USB gamepad input to channels. A future game-play path needs a separate approved relay/input architecture; it must not be represented as direct EmulatorJS support.
+
+## Shared backend
+
+Streaming is served by [RommStreamServer](https://github.com/BlizzHacker/RommStreamServer),
+which now also powers [RommForXbox](https://github.com/BlizzHacker/RommForXbox).
+Roku sessions automatically use server-side **RetroArch** cores (GameCube, Wii,
+Dreamcast, PS2, Saturn, N64, PSP, …) when available, falling back to the legacy
+headless-Chromium EmulatorJS path — same HLS + phone-controller flow as before.

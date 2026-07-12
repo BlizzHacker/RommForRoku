@@ -152,6 +152,7 @@ sub startGameStream()
         name: safeText(game.name, "game")
         platform: safeText(m.selectedPlatform.slug, "n64")
         rom_name: safeText(game.fs_name, "")
+        client: "roku"
     })
     beginStreamRequest("stream-start", "POST", "/api/stream/start", body)
 end sub
