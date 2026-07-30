@@ -1,7 +1,7 @@
 # RomM for Roku
 
-A project of the [Move Weight Foundation](https://foundation.moveweight.com), a
-501(c)(3).
+A project of the [Move Weight Foundation](https://foundation.moveweight.com), an
+Oklahoma non-profit corporation with 501(c)(3) status pending.
 
 Roku companion channel for the MoveWeight RomM library. It uses RomM 4.9 client API-token pairing, so it never asks for or stores a RomM password.
 
