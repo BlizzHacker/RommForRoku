@@ -3,15 +3,22 @@
 A project of the [Move Weight Foundation](https://foundation.moveweight.com), an
 Oklahoma non-profit corporation with 501(c)(3) status pending.
 
-Roku companion channel for the MoveWeight RomM library. It uses RomM 4.9 client API-token pairing, so it never asks for or stores a RomM password.
+Browse your self-hosted [RomM](https://github.com/rommapp/romm) game library
+from the couch: a Roku channel with controller-friendly navigation over your
+live platform and game catalog. It uses RomM 4.9's client API-token pairing,
+so it never asks for — and never stores — your RomM password.
 
-## Pairing
+## Pair it with your RomM
 
-1. Sign into `https://romm.moveweight.com` in a browser.
-2. Create a Client API Token named `RomM for Roku` with read-only `platforms.read` and `roms.read` scopes.
-3. Choose **Pair** for that token and enter the displayed eight-digit code in the channel.
+1. Sign into your RomM instance in a browser.
+2. Create a Client API Token named `RomM for Roku` with read-only
+   `platforms.read` and `roms.read` scopes.
+3. Choose **Pair** for that token and enter the displayed eight-digit code in
+   the channel.
 
-Pairing codes are single-use and expire after five minutes. The resulting scoped token is stored in this channel's local Roku registry and can be revoked at any time in RomM.
+Pairing codes are single-use and expire after five minutes. The resulting
+scoped token is stored in the channel's local Roku registry and can be revoked
+in RomM at any time.
 
 ## Build a sideload package
 
@@ -19,16 +26,19 @@ Pairing codes are single-use and expire after five minutes. The resulting scoped
 ./scripts/package.ps1
 ```
 
-The package is written to `dist/RommForRoku-<version>.zip`, with the version taken from the manifest. Upload that archive from the Roku device development web page. Do not zip the enclosing project folder; Roku requires `manifest`, `source`, and `components` at the archive root.
+The package is written to `dist/RommForRoku-<version>.zip`, with the version
+taken from the manifest. Upload that archive from the Roku device development
+web page. Do not zip the enclosing project folder; Roku requires `manifest`,
+`source`, and `components` at the archive root.
 
-## Scope and platform limit
+## Playing games — what a Roku can and can't do
 
-This is a real RomM library client: it pairs, reads the live platform/game catalog, and presents controller-friendly Roku navigation. It cannot directly run EmulatorJS or low-latency game streaming because Roku channels do not embed a browser/WebRTC game client and Roku does not expose arbitrary Bluetooth/USB gamepad input to channels. A future game-play path needs a separate approved relay/input architecture; it must not be represented as direct EmulatorJS support.
-
-## Shared backend
-
-Streaming is served by [RommStreamServer](https://github.com/BlizzHacker/RommStreamServer),
-which now also powers [RommForXbox](https://github.com/BlizzHacker/RommForXbox).
-Roku sessions automatically use server-side **RetroArch** cores (GameCube, Wii,
-Dreamcast, PS2, Saturn, N64, PSP, …) when available, falling back to the legacy
-headless-Chromium EmulatorJS path — same HLS + phone-controller flow as before.
+Roku channels cannot embed a browser or WebRTC client, and Roku exposes no
+arbitrary gamepad input to channels — so games cannot run *on* the Roku.
+Instead, streaming is served by
+[RommStreamServer](https://github.com/BlizzHacker/RommStreamServer), the same
+backend that powers
+[RommForXbox](https://github.com/BlizzHacker/RommForXbox): sessions use
+server-side **RetroArch** cores (GameCube, Wii, Dreamcast, PS2, Saturn, N64,
+PSP, …) when available, falling back to a headless-Chromium EmulatorJS path —
+delivered to the TV as HLS, with your phone as the controller.
