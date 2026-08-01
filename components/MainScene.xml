@@ -25,6 +25,18 @@
     <LabelList id="platformList" visible="false" translation="[64,194]" width="1150" height="448" itemSize="[1100,52]" itemSpacing="[0,8]" drawFocusFeedback="true" focusedColor="0x7DD3FCFF" color="0xD7E3F9FF" />
     <LabelList id="romList" visible="false" translation="[64,194]" width="1150" height="448" itemSize="[1100,52]" itemSpacing="[0,8]" drawFocusFeedback="true" focusedColor="0x7DD3FCFF" color="0xD7E3F9FF" />
 
+    <!-- Instant search: pressing * (or the on-screen hint) over a game list opens
+         this keyboard; every character re-queries the server with search_term so
+         results filter as you type. -->
+    <Label id="searchHint" visible="false" translation="[64,136]" width="1150" height="30" font="font:SmallSystemFont" color="0x7DD3FCFF" text="Press * to search" />
+    <Group id="searchPanel" visible="false" translation="[64,150]">
+      <Rectangle width="1150" height="470" color="0x0E1526F0" />
+      <Label translation="[24,20]" width="1100" height="40" font="font:MediumBoldSystemFont" color="0xF8FAFCFF" text="Search games" />
+      <MiniKeyboard id="searchKeyboard" translation="[24,70]" />
+      <Label id="searchResults" translation="[560,80]" width="560" height="360" wrap="true" maxLines="14" font="font:SmallSystemFont" color="0xC9D6F0FF" />
+      <Label translation="[24,430]" width="1100" height="26" font="font:SmallSystemFont" color="0xAAB9D6FF" text="Type to filter - OK on a result list below - Back to close search" />
+    </Group>
+
     <LayoutGroup id="detailsPanel" visible="false" layoutDirection="vert" translation="[84,154]" itemSpacings="[12]">
       <Poster id="detailsCover" width="200" height="280" translation="[0,0]" />
       <Label id="detailsTitle" width="880" height="44" translation="[220,0]" font="font:MediumBoldSystemFont" color="0xF8FAFCFF" />

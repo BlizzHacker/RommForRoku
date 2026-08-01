@@ -15,10 +15,16 @@ sub init()
     m.streamStatus = m.top.FindNode("streamStatus")
     m.status = m.top.FindNode("status")
     m.playButton = m.top.FindNode("playButton")
+    m.searchHint = m.top.FindNode("searchHint")
+    m.searchPanel = m.top.FindNode("searchPanel")
+    m.searchKeyboard = m.top.FindNode("searchKeyboard")
+    m.searchResults = m.top.FindNode("searchResults")
 
     m.platformList.ObserveField("itemSelected", "onPlatformSelected")
     m.romList.ObserveField("itemSelected", "onRomSelected")
     m.playButton.ObserveField("buttonSelected", "onPlayButton")
+    ' Instant search: react to every keystroke in the mini keyboard.
+    m.searchKeyboard.ObserveField("text", "onSearchTextChanged")
 
     ' Default to the LAN address: a self-hosted RomM is normally on the same
     ' network as the Roku, and the public hostname can 500 on the LAN hairpin
@@ -128,7 +134,11 @@ sub loadPlatforms()
     m.gameVideo.visible = false
     m.streamStatus.visible = false
     m.status.text = "Loading your RomM library..."
-    beginRequest("platforms", "GET", "/api/platforms", "")
+    ' First ask the stream server which platforms it can actually render on this
+    ' host (software cores only - N64/PS1/GC etc. need a GPU and would stream a
+    ' black frame). We then show only those, so no game "fails to launch".
+    m.streamable = invalid
+    beginStreamRequest("streamable", "GET", "/api/play/streamable", "")
 end sub
 
 sub onPlatformSelected()
@@ -136,13 +146,42 @@ sub onPlatformSelected()
     if index < 0 or index >= m.platforms.Count() then return
     platform = m.platforms[index]
     m.selectedPlatform = platform
+    m.searchTerm = ""
+    startRomLoad()
+end sub
+
+' Begin (or restart) loading the selected platform's ROMs from offset 0.
+sub startRomLoad()
     m.view = "loading-roms"
     m.platformList.visible = false
-    m.screenHeading.text = platformDisplayName(platform) + " games"
+    m.romList.visible = false
+    m.roms = []
+    m.romOffset = 0
+    heading = platformDisplayName(m.selectedPlatform) + " games"
+    if m.searchTerm <> invalid and m.searchTerm <> "" then
+        heading = heading + " - " + Chr(34) + m.searchTerm + Chr(34)
+    end if
+    m.screenHeading.text = heading
+    m.screenHeading.visible = true
     m.status.text = "Loading games..."
-    path = "/api/roms?platform_ids=" + platform.id.ToStr() + "&limit=500&with_char_index=false&with_filter_values=false"
+    requestRomPage()
+end sub
+
+sub requestRomPage()
+    path = "/api/roms?platform_ids=" + m.selectedPlatform.id.ToStr()
+    path = path + "&limit=200&offset=" + m.romOffset.ToStr()
+    path = path + "&with_files=false&with_char_index=false&with_filter_values=false"
+    path = path + "&order_by=name&order_dir=asc"
+    if m.searchTerm <> invalid and m.searchTerm <> "" then
+        path = path + "&search_term=" + urlEncode(m.searchTerm)
+    end if
     beginRequest("roms", "GET", path, "")
 end sub
+
+function urlEncode(s as string) as string
+    enc = CreateObject("roUrlTransfer")
+    return enc.Escape(s)
+end function
 
 sub onRomSelected()
     index = m.romList.itemSelected
@@ -234,7 +273,20 @@ sub onStreamResponse(event as object)
     if response.body <> "" then parsed = ParseJson(response.body)
     if type(parsed) <> "roAssociativeArray" then parsed = invalid
 
-    if response.requestId = "stream-start" then
+    if response.requestId = "streamable" then
+        ' Build a lookup of slugs the host can render, then load the RomM
+        ' platforms. If the stream server is unreachable we fall back to showing
+        ' everything rather than an empty screen.
+        m.streamable = {}
+        if parsed <> invalid and type(parsed.streamable) = "roArray" then
+            for each slug in parsed.streamable
+                m.streamable[LCase(slug.ToStr())] = true
+            end for
+        else
+            m.streamable = invalid
+        end if
+        beginRequest("platforms", "GET", "/api/platforms", "")
+    else if response.requestId = "stream-start" then
         if parsed <> invalid and parsed.hls_url <> invalid then
             m.streamId = safeText(parsed.stream_id, "")
             m.gameVideo.content = CreateObject("roSGNode", "ContentNode")
@@ -287,8 +339,55 @@ sub onResponse(event as object)
             showRequestError(response.status)
             return
         end if
-        displayRoms(parsed.items)
+        accumulateRomPage(parsed.items)
     end if
+end sub
+
+' Append a page of ROMs; if it was full, fetch the next page, else we're done.
+sub accumulateRomPage(items as object)
+    for each game in items
+        m.roms.Push(game)
+    end for
+    got = items.Count()
+    m.romOffset = m.romOffset + got
+    ' In search mode a single page of matches is enough - show them immediately
+    ' as a filtered list instead of paging the whole platform.
+    if m.view = "search" then
+        showSearchResults(m.roms)
+        return
+    end if
+    ' Show progress while paging so a big platform doesn't look frozen.
+    m.status.text = "Loading games... " + m.roms.Count().ToStr()
+    if got >= 200 and m.roms.Count() < 5000 then
+        ' Cap at 5000 to bound memory on huge platforms (Amiga has 4400+).
+        requestRomPage()
+    else
+        displayRoms(m.roms)
+    end if
+end sub
+
+' Render search matches into the results panel + a selectable list.
+sub showSearchResults(data as object)
+    if data.Count() = 0 then
+        m.searchResults.text = "No matches for " + Chr(34) + m.searchTerm + Chr(34)
+        return
+    end if
+    lines = data.Count().ToStr() + " matches:" + Chr(10)
+    i = 0
+    for each g in data
+        if i >= 14 then exit for
+        lines = lines + "- " + safeText(g.name, safeText(g.fs_name_no_ext, "?")) + Chr(10)
+        i = i + 1
+    end for
+    m.searchResults.text = lines
+    ' also populate the rom list underneath so OK plays the top match
+    m.roms = data
+    content = CreateObject("roSGNode", "ContentNode")
+    for each g in data
+        item = content.CreateChild("ContentNode")
+        item.title = safeText(g.name, safeText(g.fs_name_no_ext, "?"))
+    end for
+    m.romList.content = content
 end sub
 
 sub submitPairCode()
@@ -305,7 +404,15 @@ sub displayPlatforms(data as object)
     m.platforms = []
     content = CreateObject("roSGNode", "ContentNode")
     for each platform in data
-        if platform.rom_count <> invalid and platform.rom_count > 0 then
+        hasGames = (platform.rom_count <> invalid and platform.rom_count > 0)
+        ' Only show platforms this host can actually render (software cores). If
+        ' the streamable list is unavailable, show everything as a fallback.
+        canPlay = true
+        if m.streamable <> invalid then
+            slug = LCase(safeText(platform.slug, ""))
+            canPlay = (m.streamable[slug] = true)
+        end if
+        if hasGames and canPlay then
             m.platforms.Push(platform)
             item = content.CreateChild("ContentNode")
             item.title = platformDisplayName(platform) + "  (" + platform.rom_count.ToStr() + " games)"
@@ -333,10 +440,12 @@ sub displayRoms(data as object)
     end for
 
     m.view = "roms"
+    m.searchPanel.visible = false
     m.romList.content = content
     m.romList.visible = true
+    m.searchHint.visible = true
     m.romList.SetFocus(true)
-    m.status.text = m.roms.Count().ToStr() + " games — select one for details"
+    m.status.text = m.roms.Count().ToStr() + " games - press * to search"
 end sub
 
 sub showRequestError(status as integer)
@@ -424,17 +533,59 @@ function onKeyEvent(key as string, press as boolean) as boolean
     else if m.view = "streaming" and key = "back" then
         stopGameStream()
         return true
+    else if m.view = "roms" and (key = "options" or key = "info" or key = "asterisk") then
+        openSearch()
+        return true
     else if m.view = "roms" and key = "back" then
         m.romList.visible = false
+        m.searchHint.visible = false
         m.platformList.visible = true
         m.platformList.SetFocus(true)
         m.view = "platforms"
         m.screenHeading.text = "Your platforms"
         m.status.text = "Select a platform"
         return true
+    else if m.view = "search" and key = "back" then
+        closeSearch()
+        return true
     end if
     return false
 end function
+
+' ---- instant search ----
+sub openSearch()
+    m.view = "search"
+    m.romList.visible = false
+    m.searchHint.visible = false
+    m.searchPanel.visible = true
+    m.searchKeyboard.text = ""
+    m.searchResults.text = "Start typing to search " + platformDisplayName(m.selectedPlatform) + "..."
+    m.searchKeyboard.SetFocus(true)
+end sub
+
+sub closeSearch()
+    m.searchPanel.visible = false
+    m.searchTerm = ""
+    ' reload the full (unsearched) list
+    startRomLoad()
+end sub
+
+' Every keystroke re-queries the server with search_term. RomM's search is fast
+' and we pull only the first page, so results feel instant.
+sub onSearchTextChanged()
+    term = m.searchKeyboard.text
+    m.searchTerm = term
+    if term = "" then
+        m.searchResults.text = "Start typing to search..."
+        return
+    end if
+    m.searchResults.text = "Searching " + Chr(34) + term + Chr(34) + " ..."
+    m.romOffset = 0
+    m.roms = []
+    ' a fresh single-page query with the term; results land in accumulateRomPage,
+    ' which (when in search view) fills the results label instead of the list.
+    requestRomPage()
+end sub
 
 ' Map a Roku remote button to an emulator control (server maps these to the
 ' EmulatorJS/RetroArch keys per platform). Runs during a streaming session.
