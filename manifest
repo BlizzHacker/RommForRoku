@@ -3,7 +3,7 @@ subtitle=Play your self-hosted RomM library on Roku. Unofficial; not affiliated 
 major_version=0
 minor_version=6
 build_version=0
-ui_resolutions=fhd
+ui_resolutions=hd
 
 # Uniform RomM brand art (shared master with the Windows/Xbox builds — see
 # ../brand/). Focus art is the Home-screen channel poster; the splash shows

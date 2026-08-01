@@ -20,7 +20,11 @@ sub init()
     m.romList.ObserveField("itemSelected", "onRomSelected")
     m.playButton.ObserveField("buttonSelected", "onPlayButton")
 
-    m.defaultServer = "https://romm.moveweight.com"
+    ' Default to the LAN address: a self-hosted RomM is normally on the same
+    ' network as the Roku, and the public hostname can 500 on the LAN hairpin
+    ' path through the reverse proxy. Users on a different network can still pair
+    ' against any server via the deep-link server= param or a future settings UI.
+    m.defaultServer = "http://192.168.0.94:8080"
     m.streamServer = "http://192.168.0.94:8090"
     m.phoneUrl = "192.168.0.94:8091"
     m.server = m.defaultServer
@@ -42,11 +46,37 @@ sub init()
         m.token = ""
     end if
 
+    ' Deep-link / dev launch: Main() sets launchToken/launchServer on this node,
+    ' but it may set them AFTER init() has already run (scene creation is
+    ' synchronous). So honor whatever is set now, and also observe the fields so
+    ' a slightly-later set from Main() still boots us into the library.
+    m.top.ObserveField("launchToken", "onLaunchToken")
+
+    if applyLaunchToken() then return
+
     if m.token = "" then
         showPairing()
     else
         loadPlatforms()
     end if
+end sub
+
+' Returns true if a launch token was applied (and a load kicked off).
+function applyLaunchToken() as boolean
+    if m.top.launchServer <> invalid and m.top.launchServer <> "" then
+        m.server = m.top.launchServer
+    end if
+    if m.top.launchToken <> invalid and m.top.launchToken <> "" then
+        m.token = m.top.launchToken
+        saveConnection()
+        loadPlatforms()
+        return true
+    end if
+    return false
+end function
+
+sub onLaunchToken()
+    applyLaunchToken()
 end sub
 
 sub showPairing(message = "")
@@ -286,6 +316,10 @@ sub displayPlatforms(data as object)
     m.platformList.content = content
     m.platformList.visible = true
     m.screenHeading.text = "Your platforms"
+    ' Grab scene focus first: when the channel is deep-linked straight into the
+    ' library (no pairing screen), the scene may not hold remote focus yet, so
+    ' SetFocus on the list alone leaves ECP/remote keys routed nowhere.
+    m.top.SetFocus(true)
     m.platformList.SetFocus(true)
     m.status.text = m.platforms.Count().ToStr() + " platforms with games"
 end sub

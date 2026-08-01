@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <component name="MainScene" extends="Scene">
   <script type="text/brightscript" uri="pkg:/components/MainScene.brs" />
+  <interface>
+    <field id="launchToken" type="string" />
+    <field id="launchServer" type="string" />
+  </interface>
   <children>
     <Rectangle id="background" width="1280" height="720" color="0x0B1020FF" />
     <Rectangle id="topBar" width="1280" height="108" color="0x121B33FF" />
-    <Label id="title" text="RomM for Roku" translation="[64,28]" width="900" height="46" font="font:LargeBoldSystemFont" color="0xF8FAFCFF" />
-    <Label id="subtitle" text="MoveWeight game library" translation="[66,74]" width="900" height="24" font="font:SmallSystemFont" color="0x9FB3D9FF" />
+    <Label id="title" text="Cartridge" translation="[64,28]" width="900" height="46" font="font:LargeBoldSystemFont" color="0xF8FAFCFF" />
+    <Label id="subtitle" text="Your self-hosted retro library — works with RomM (unofficial)" translation="[66,74]" width="1200" height="24" font="font:SmallSystemFont" color="0x9FB3D9FF" />
 
     <LayoutGroup id="pairPanel" layoutDirection="vert" translation="[94,150]" itemSpacings="[18]">
       <Label text="Pair this Roku with RomM" width="1090" height="50" font="font:MediumBoldSystemFont" color="0xF8FAFCFF" />
