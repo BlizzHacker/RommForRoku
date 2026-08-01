@@ -1,8 +1,5 @@
 # RomM for Roku
 
-A project of the [Move Weight Foundation](https://foundation.moveweight.com), an
-Oklahoma non-profit corporation with 501(c)(3) status pending.
-
 Browse your self-hosted [RomM](https://github.com/rommapp/romm) game library
 from the couch: a Roku channel with controller-friendly navigation over your
 live platform and game catalog. It uses RomM 4.9's client API-token pairing,
