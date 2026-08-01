@@ -1,5 +1,7 @@
 # RomM for Roku
 
+> A **[Cartridge](https://github.com/BlizzHacker/rom-hub/blob/master/BRAND.md)** app by MoveWeight — the play pillar. Cartridge is a self-hosted retro-gaming ecosystem. Unofficial; not affiliated with RomM, Gaseous or Retrom.
+
 Browse your self-hosted [RomM](https://github.com/rommapp/romm) game library
 from the couch: a Roku channel with controller-friendly navigation over your
 live platform and game catalog. It uses RomM 4.9's client API-token pairing,
