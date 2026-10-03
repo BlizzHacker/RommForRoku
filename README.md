@@ -30,10 +30,10 @@ so it never asks for — and never stores — your RomM password.
 1. Sign into your RomM instance in a browser.
 2. Create a Client API Token named `RomM for Roku` with read-only
    `platforms.read` and `roms.read` scopes.
-3. Choose **Pair** for that token and enter the displayed eight-digit code in
+3. Choose **Pair** for that token and enter the displayed eight-character code (letters and digits, e.g. `A3K3-G9HJ`) in
    the channel.
 
-Pairing codes are single-use and expire after five minutes. The resulting
+Pairing codes are single-use and expire after about a minute. The resulting
 scoped token is stored in the channel's local Roku registry and can be revoked
 in RomM at any time.
 
