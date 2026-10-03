@@ -1,0 +1,81 @@
+# yaml-language-server: $schema=https://storage.googleapis.com/coderabbit_public_assets/schema.v2.json
+language: en-US
+tone_instructions: >-
+  Be direct; skip praise and preamble. This is a BrightScript Roku channel.
+  Prioritize remote-navigation correctness, memory limits, and
+  certification-relevant behavior over style.
+early_access: false
+enable_free_tier: true
+
+reviews:
+  profile: chill
+  request_changes_workflow: false
+  high_level_summary: true
+  review_status: true
+  collapse_walkthrough: true
+  changed_files_summary: true
+  sequence_diagrams: true
+  estimate_code_review_effort: true
+  assess_linked_issues: true
+  related_issues: true
+  related_prs: true
+  suggested_labels: true
+  auto_apply_labels: false
+  suggested_reviewers: false
+  in_progress_fortune: false
+  poem: false
+  enable_prompt_for_ai_agents: true
+  abort_on_close: true
+
+  slop_detection:
+    enabled: true
+    label: slop
+
+  path_filters:
+    - "!**/*.min.js"
+    - "!**/dist/**"
+    - "!**/build/**"
+    - "!**/node_modules/**"
+    - "!**/*.lock"
+    - "!**/vendor/**"
+    - "!**/__pycache__/**"
+
+  path_instructions:
+    - path: "**/*.brs"
+      instructions: >-
+        BrightScript is dynamically typed and fails at runtime on a real device,
+        so review for defects that static analysis cannot catch here.
+
+        Flag any screen where the remote's Back button does not return to a
+        sensible prior screen, and any focus handling that can leave no focused
+        element — on a TV that is an unrecoverable dead end.
+
+        Roku devices are memory-constrained. Flag unbounded lists built fully in
+        memory, images loaded at larger than display resolution, and observers
+        registered without a matching unobserve on screen teardown.
+
+        Flag invalid or unchecked field access on roSGNode, which silently
+        yields invalid rather than raising, and then fails much later.
+
+  auto_review:
+    enabled: true
+    auto_incremental_review: true
+    drafts: false
+    ignore_usernames:
+      - dependabot
+      - dependabot[bot]
+
+  tools:
+    gitleaks:
+      enabled: true
+    languagetool:
+      enabled: false
+
+chat:
+  art: false
+  auto_reply: true
+
+knowledge_base:
+  opt_out: false
+  learnings:
+    scope: auto
