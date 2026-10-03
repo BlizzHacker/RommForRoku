@@ -34,7 +34,11 @@ sub init()
     m.streamServer = "http://192.168.0.94:8090"
     m.phoneUrl = "192.168.0.94:8091"
     m.server = m.defaultServer
-    m.codeDigits = ["0", "0", "0", "0", "0", "0", "0", "0"]
+    ' RomM pairing codes are 8 characters from A-Z (no I, L, O) and 2-9; older
+    ' servers issued digits only, so 0-9 stay available. The server strips
+    ' hyphens and upper-cases, so what is sent is the bare 8 characters.
+    m.codeChars = "0123456789ABCDEFGHJKMNPQRSTUVWXYZ"
+    m.codeDigits = ["A", "A", "A", "A", "A", "A", "A", "A"]
     m.cursor = 0
     m.platforms = []
     m.roms = []
@@ -502,15 +506,17 @@ function onKeyEvent(key as string, press as boolean) as boolean
             updatePairCode()
             return true
         else if key = "up" or key = "down" then
-            current = m.codeDigits[m.cursor].ToInt()
+            current = Instr(1, m.codeChars, m.codeDigits[m.cursor]) - 1
+            if current < 0 then current = 0
+            total = Len(m.codeChars)
             if key = "up" then
                 current = current + 1
-                if current > 9 then current = 0
+                if current >= total then current = 0
             else
                 current = current - 1
-                if current < 0 then current = 9
+                if current < 0 then current = total - 1
             end if
-            m.codeDigits[m.cursor] = current.ToStr()
+            m.codeDigits[m.cursor] = Mid(m.codeChars, current + 1, 1)
             updatePairCode()
             return true
         else if key = "OK" then
