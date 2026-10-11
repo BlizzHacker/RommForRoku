@@ -13,12 +13,12 @@
 
     <LayoutGroup id="pairPanel" layoutDirection="vert" translation="[94,150]" itemSpacings="[18]">
       <Label text="Pair this Roku with RomM" width="1090" height="50" font="font:MediumBoldSystemFont" color="0xF8FAFCFF" />
-      <Label id="pairInstructions" text="On romm.moveweight.com, create a read-only Client API Token and choose Pair to generate an 8-digit code." width="1090" height="54" wrap="true" maxLines="2" font="font:MediumSystemFont" color="0xC9D6F0FF" />
+      <Label id="pairInstructions" text="On romm.moveweight.com, create a read-only Client API Token and choose Pair to generate an 8-character code." width="1090" height="54" wrap="true" maxLines="2" font="font:MediumSystemFont" color="0xC9D6F0FF" />
       <Rectangle width="1090" height="2" color="0x334B7AFF" />
-      <Label id="pairCode" text="0 0 0 0   0 0 0 0" width="1090" height="78" horizAlign="center" font="font:LargeBoldSystemFont" color="0x7DD3FCFF" />
+      <Label id="pairCode" text="A A A A   A A A A" width="1090" height="78" horizAlign="center" font="font:LargeBoldSystemFont" color="0x7DD3FCFF" />
       <Label id="pairCursor" text="^" width="1090" height="32" horizAlign="center" font="font:MediumBoldSystemFont" color="0xFDE68AFF" />
-      <Label text="Left / Right: choose a digit    Up / Down: change it    OK: pair" width="1090" height="30" horizAlign="center" font="font:SmallSystemFont" color="0xAAB9D6FF" />
-      <Label id="pairHint" text="The pairing code is single-use and expires after five minutes." width="1090" height="30" horizAlign="center" font="font:SmallSystemFont" color="0x8093B8FF" />
+      <Label text="Left / Right: choose a character    Up / Down: change it    OK: pair" width="1090" height="30" horizAlign="center" font="font:SmallSystemFont" color="0xAAB9D6FF" />
+      <Label id="pairHint" text="The pairing code is single-use and expires after about a minute." width="1090" height="30" horizAlign="center" font="font:SmallSystemFont" color="0x8093B8FF" />
     </LayoutGroup>
 
     <Label id="screenHeading" visible="false" translation="[64,136]" width="1150" height="44" font="font:MediumBoldSystemFont" color="0xF8FAFCFF" />
